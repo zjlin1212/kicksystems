@@ -1,0 +1,82 @@
+Chap 39 file-intro
+hard link:
+The way link works is that it simply creates another name in the directory
+you are creating the link to, and refers it to the same inode number
+(i.e., low-level name) of the original file. The file is not copied in any way;
+rather, you now just have two human names (file and file2) that both
+refer to the same file. We can even see this in the directory itself. 
+By printing out the inode number of each file:
+prompt> ls -i file file2
+67158084 file
+67158084 file2
+prompt>
+By passing the -i flag to ls, it prints out the inode number of each file
+(as well as the file name). And thus you can see what link really has done:
+just make a new reference to the same exact inode number (67158084 in
+this example).
+By now youmight be starting to seewhy unlink() is called unlink().
+When you create a file, you are really doing two things. First, you are
+making a structure (the inode) that will track virtually all relevant information
+about the file, including its size, where its blocks are on disk, and
+so forth. Second, you are linking a human-readable name to that file, and
+putting that link into a directory.
+After creating a hard link to a file, to the file system, there is no difference
+between the original file name (file) and the newly created file
+name (file2); indeed, they are both just links to the underlying metadata
+about the file, which is found in inode number 67158084.
+Thus, to remove a file from the file system, we call unlink(). In the
+example above, we could for example remove the file named file, and
+still access the file without difficulty:
+
+prompt> rm file
+removed ‘file’
+prompt> cat file2
+hello
+
+The reason this works is because when the file system unlinks file, it
+checks a reference count within the inode number. This reference count
+(sometimes called the link count) allows the file system to track how
+many different file names have been linked to this particular inode. When
+unlink() is called, it removes the “link” between the human-readable
+name (the file that is being deleted) to the given inode number, and decrements
+the reference count; only when the reference count reaches zero
+does the file system also free the inode and related data blocks, and thus
+truly “delete” the file.
+
+-----------------------------------------------------------------------------------------------
+soft link(Symbolic link)
+There is one other type of link that is really useful, and it is called a
+symbolic link or sometimes a soft link. As it turns out, hard links are
+somewhat limited: you can’t create one to a directory (for fear that you
+will create a cycle in the directory tree); you can’t hard link to files in
+other disk partitions (because inode numbers are only unique within a
+particular file system, not across file systems); etc. Thus, a new type of
+link called the symbolic link was created.
+However, beyond this surface similarity, symbolic links are actually
+quite different from hard links. The first difference is that a symbolic
+link is actually a file itself, of a different type.
+
+Running ls also reveals this fact. If you look closely at the first character
+of the long-form of the output from ls, you can see that the first
+character in the left-most column is a - for regular files, a d for directories,
+and an l for soft links. You can also see the size of the symbolic link
+(4 bytes in this case), as well as what the link points to (the file named
+file).
+
+prompt> ls -al
+drwxr-x--- 2 remzi remzi 29 May 3 19:10 ./
+drwxr-x--- 27 remzi remzi 4096 May 3 15:14 ../
+-rw-r----- 1 remzi remzi 6 May 3 19:10 file
+lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
+
+The reason that file2 is 4 bytes is because the way a symbolic link is
+formed is by holding the pathname of the linked-to file as the data of the
+link file. Because we’ve linked to a file named file, our link file file2
+is small (4 bytes). If we link to a longer pathname, our link file would be
+bigger:
+
+prompt> echo hello > alongerfilename
+prompt> ln -s alongerfilename file3
+prompt> ls -al alongerfilename file3
+-rw-r----- 1 remzi remzi 6 May 3 19:17 alongerfilename
+lrwxrwxrwx 1 remzi remzi 15 May 3 19:17 file3 -> alongerfilename

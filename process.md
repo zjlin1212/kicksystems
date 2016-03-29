@@ -37,6 +37,9 @@ user mode and kernel mode can switch by setting EFLAGS bits.
 注意, fork是COW(copy on write)的.
 
 ###Reaping Child Processes
+
+Generally speaking, when a process becomes orphan (that is, its parent dies) it is adopted by init.
+
 A terminated process that has not yet been reaped is called a zombie.
 
 If the parent process terminates without reaping its zombie children, the kernel arranges for the init process to reap them. The init process has a PID of 1 and is created by the kernel during system initialization. 

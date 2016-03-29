@@ -26,6 +26,7 @@ Does not return if OK, returns −1 on error
 
 ##7. fork() can return an error. Why might this happen?
 When running out of memory or exceed processes a system can support.
+0 is returned in the child. On failure, -1 is returned in the parent
 
 ##8. What happens if you run “exec csh” in your shell? What happens if you run “exec ls” in your shell? Try it.
 

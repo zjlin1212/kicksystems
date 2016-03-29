@@ -29,6 +29,9 @@ When running out of memory or exceed processes a system can support.
 0 is returned in the child. On failure, -1 is returned in the parent
 
 ##8. What happens if you run “exec csh” in your shell? What happens if you run “exec ls” in your shell? Try it.
+If you run ls, your shell process will start up another process to run the ls program, then it will wait for it to finish. When it finishes, control is returned to the shell.
+
+With exec ls, you actually replace your shell program in the current process with the ls program so that, when it finishes, there's no shell waiting for it.
 
 ##9. What happens if a parent process exits before a child?
 Child process become zombie.
